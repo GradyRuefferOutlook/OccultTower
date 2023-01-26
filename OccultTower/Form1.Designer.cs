@@ -29,7 +29,9 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.gameOperator = new System.Windows.Forms.Timer(this.components);
+            this.pauseTimer = new System.Windows.Forms.Timer(this.components);
             this.SuspendLayout();
             // 
             // gameOperator
@@ -37,25 +39,33 @@
             this.gameOperator.Interval = 20;
             this.gameOperator.Tick += new System.EventHandler(this.gameOperator_Tick);
             // 
+            // pauseTimer
+            // 
+            this.pauseTimer.Interval = 20;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = System.Drawing.Color.Salmon;
+            this.BackColor = System.Drawing.Color.Blue;
             this.ClientSize = new System.Drawing.Size(1924, 1055);
             this.DoubleBuffered = true;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "Form1";
             this.Text = "OccultTower";
             this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.Paint += new System.Windows.Forms.PaintEventHandler(this.Form1_Paint);
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Form1_KeyDown);
             this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.Form1_KeyUp);
+            this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.Form1_MouseDown);
+            this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.Form1_MouseUp);
             this.ResumeLayout(false);
 
         }
 
         #endregion
         private System.Windows.Forms.Timer gameOperator;
+        private System.Windows.Forms.Timer pauseTimer;
     }
 }
 
