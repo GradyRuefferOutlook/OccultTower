@@ -1201,12 +1201,52 @@ namespace OccultTower.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap OccultTower_Main_Menu {
+            get {
+                object obj = ResourceManager.GetObject("OccultTower_Main_Menu", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap OccultTowerControlsOverlay {
+            get {
+                object obj = ResourceManager.GetObject("OccultTowerControlsOverlay", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
         /// </summary>
         internal static System.Drawing.Icon OccultTowerIcon {
             get {
                 object obj = ResourceManager.GetObject("OccultTowerIcon", resourceCulture);
                 return ((System.Drawing.Icon)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap OccultTowerOptionMenu {
+            get {
+                object obj = ResourceManager.GetObject("OccultTowerOptionMenu", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap OccultTowerStartScreen {
+            get {
+                object obj = ResourceManager.GetObject("OccultTowerStartScreen", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
             }
         }
         
@@ -3356,6 +3396,16 @@ namespace OccultTower.Properties {
         internal static System.Drawing.Bitmap Table__2_ {
             get {
                 object obj = ResourceManager.GetObject("Table__2_", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Tombstone {
+            get {
+                object obj = ResourceManager.GetObject("Tombstone", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

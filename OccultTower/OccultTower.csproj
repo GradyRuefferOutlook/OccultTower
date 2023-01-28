@@ -1160,5 +1160,20 @@
   <ItemGroup>
     <None Include="Resources\eyJidWNrZXQiOiJjb250ZW50Lmhzd3N0YXRpYy5jb20iLCJrZXkiOiJnaWZcL3RoZS10b3dlci10YXJvdC0zLmpwZyIsImVkaXRzIjp7InJlc2l6ZSI6eyJ3aWR0aCI6ODI4fX19.ico" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\OccultTowerControlsOverlay.PNG" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\OccultTowerOptionMenu.PNG" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\OccultTower Main Menu.PNG" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\OccultTowerStartScreen.PNG" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Tombstone.PNG" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

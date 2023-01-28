@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -9,10 +10,24 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
+/* Grady Rueffer
+ * 152446035
+ * OccultTower
+ */
+//At the moment the menus are purely decorative
+//StartGameFromStart is currently required to play the game as key inputs are not being read when the menus are active
+//Projectiles are currently not created, so the game acts as a survival game
+//Enjoy!
+
+
 namespace OccultTower
 {
     public partial class Form1 : Form
     {
+        bool StartGameFromStart = false;
+
+        Stopwatch SurvivalWatch = new Stopwatch();
+
         Rectangle moveHolder = new Rectangle();
         int spriteOperator = 0;
 
@@ -275,6 +290,30 @@ namespace OccultTower
 
         public Character Cultist = new Character();
         public Weapon KerisMain = new Weapon();
+
+        public class Villain
+        {
+            public Image VillainDisplay;
+            public int Damage;
+            public int Health;
+            public int Speed;
+            public String Type;
+            public int AnimationPoint;
+            public Rectangle Area;
+
+            public void Setup(Image _VillainDisplay, int _Damage, int _Health, int _Speed, String _Type, int _AnimationPoint, Rectangle _Area)
+            {
+                VillainDisplay = _VillainDisplay;
+                Damage = _Damage;
+                Health = _Health;
+                Speed = _Speed;
+                Type = _Type;
+                AnimationPoint = _AnimationPoint;
+                Area = _Area;
+            }
+        }
+
+        List<Villain> villainList = new List<Villain>();
 
         bool pressed = false;
         bool wPressed = false;
@@ -565,7 +604,15 @@ namespace OccultTower
             torchUpRight.Location = new Point(Convert.ToInt32(rightWall.X + rightWall.Width / 3), Convert.ToInt32(rightWall.Y + rightWall.Height / 8 * 1));
             torchDownRight.Location = new Point(Convert.ToInt32(rightWall.X + rightWall.Width / 3), Convert.ToInt32(rightWall.Y + rightWall.Height / 8 * 4));
 
-            gameOperator.Enabled = true;
+            if (StartGameFromStart == false)
+            {
+                ImageOverlay.Visible = true;
+                startOperator.Enabled = true;
+            }
+            else
+            {
+                gameOperator.Enabled = true;
+            }
         }
 
         private void Form1_KeyUp(object sender, KeyEventArgs e)
@@ -672,94 +719,184 @@ namespace OccultTower
 
         private void Form1_Paint(object sender, PaintEventArgs e)
         {
-            //Draw Walls
-            e.Graphics.FillRectangle(wallBrush, topWall);
-            e.Graphics.FillRectangle(wallBrush, leftWall);
-            e.Graphics.FillRectangle(wallBrush, rightWall);
-            e.Graphics.FillRectangle(wallBrush, bottomWall);
+            if (gameOperator.Enabled == true || deathOperator.Enabled == true)
+            {
+                //Draw Walls
+                e.Graphics.FillRectangle(wallBrush, topWall);
+                e.Graphics.FillRectangle(wallBrush, leftWall);
+                e.Graphics.FillRectangle(wallBrush, rightWall);
+                e.Graphics.FillRectangle(wallBrush, bottomWall);
 
-            //Draw Walls Decals
-            e.Graphics.DrawLine(wallOutlinePen, 0, 0, leftWall.X + leftWall.Width, topWall.Y + topWall.Height);
-            e.Graphics.DrawLine(wallOutlinePen, this.Width, 0, rightWall.X, topWall.Y + topWall.Height);
-            e.Graphics.DrawLine(wallOutlinePen, 0, this.Height, leftWall.X + leftWall.Width, bottomWall.Y);
-            e.Graphics.DrawLine(wallOutlinePen, this.Width, this.Height, rightWall.X, bottomWall.Y);
+                //Draw Walls Decals
+                e.Graphics.DrawLine(wallOutlinePen, 0, 0, leftWall.X + leftWall.Width, topWall.Y + topWall.Height);
+                e.Graphics.DrawLine(wallOutlinePen, this.Width, 0, rightWall.X, topWall.Y + topWall.Height);
+                e.Graphics.DrawLine(wallOutlinePen, 0, this.Height, leftWall.X + leftWall.Width, bottomWall.Y);
+                e.Graphics.DrawLine(wallOutlinePen, this.Width, this.Height, rightWall.X, bottomWall.Y);
 
-            e.Graphics.DrawLine(wallOutlinePen, leftWall.X + leftWall.Width, topWall.Y + topWall.Height, rightWall.X, topWall.Y + topWall.Height);
-            e.Graphics.DrawLine(wallOutlinePen, leftWall.X + leftWall.Width, bottomWall.Y, rightWall.X, bottomWall.Y);
-            e.Graphics.DrawLine(wallOutlinePen, leftWall.X + leftWall.Width, bottomWall.Y, leftWall.X + leftWall.Width, topWall.Y + topWall.Height);
-            e.Graphics.DrawLine(wallOutlinePen, rightWall.X, bottomWall.Y, rightWall.X, topWall.Y + topWall.Height);
+                e.Graphics.DrawLine(wallOutlinePen, leftWall.X + leftWall.Width, topWall.Y + topWall.Height, rightWall.X, topWall.Y + topWall.Height);
+                e.Graphics.DrawLine(wallOutlinePen, leftWall.X + leftWall.Width, bottomWall.Y, rightWall.X, bottomWall.Y);
+                e.Graphics.DrawLine(wallOutlinePen, leftWall.X + leftWall.Width, bottomWall.Y, leftWall.X + leftWall.Width, topWall.Y + topWall.Height);
+                e.Graphics.DrawLine(wallOutlinePen, rightWall.X, bottomWall.Y, rightWall.X, topWall.Y + topWall.Height);
 
-            //Draw Doors
-            e.Graphics.DrawImage(bigDoorAImages[bigDoorAAnimationPoint], bigDoorA);
-            e.Graphics.DrawImage(bigDoorBImages[bigDoorBAnimationPoint], bigDoorB);
-            e.Graphics.DrawImage(bigDoorCImages[bigDoorCAnimationPoint], bigDoorC);
+                //Draw Doors
+                e.Graphics.DrawImage(bigDoorAImages[bigDoorAAnimationPoint], bigDoorA);
+                e.Graphics.DrawImage(bigDoorBImages[bigDoorBAnimationPoint], bigDoorB);
+                e.Graphics.DrawImage(bigDoorCImages[bigDoorCAnimationPoint], bigDoorC);
 
-            e.Graphics.DrawImage(smallDoorLeftAImages[smallDoorLeftAAnimationPoint], smallDoorLeftA);
-            e.Graphics.DrawImage(smallDoorLeftBImages[smallDoorLeftBAnimationPoint], smallDoorLeftB);
-            e.Graphics.DrawImage(smallDoorLeftCImages[smallDoorLeftCAnimationPoint], smallDoorLeftC);
+                e.Graphics.DrawImage(smallDoorLeftAImages[smallDoorLeftAAnimationPoint], smallDoorLeftA);
+                e.Graphics.DrawImage(smallDoorLeftBImages[smallDoorLeftBAnimationPoint], smallDoorLeftB);
+                e.Graphics.DrawImage(smallDoorLeftCImages[smallDoorLeftCAnimationPoint], smallDoorLeftC);
 
-            e.Graphics.DrawImage(smallDoorRightAImages[smallDoorRightAAnimationPoint], smallDoorRightA);
-            e.Graphics.DrawImage(smallDoorRightBImages[smallDoorRightBAnimationPoint], smallDoorRightB);
-            e.Graphics.DrawImage(smallDoorRightCImages[smallDoorRightCAnimationPoint], smallDoorRightC);
+                e.Graphics.DrawImage(smallDoorRightAImages[smallDoorRightAAnimationPoint], smallDoorRightA);
+                e.Graphics.DrawImage(smallDoorRightBImages[smallDoorRightBAnimationPoint], smallDoorRightB);
+                e.Graphics.DrawImage(smallDoorRightCImages[smallDoorRightCAnimationPoint], smallDoorRightC);
 
-            //Draw Torches
-            e.Graphics.DrawImage(torch[torchUpLeftAnimationPoint], torchUpLeft);
-            e.Graphics.DrawImage(torch[torchDownLeftAnimationPoint], torchDownLeft);
-            e.Graphics.DrawImage(torch[torchUpRightAnimationPoint], torchUpRight);
-            e.Graphics.DrawImage(torch[torchDownRightAnimationPoint], torchDownRight);
+                //Draw Torches
+                e.Graphics.DrawImage(torch[torchUpLeftAnimationPoint], torchUpLeft);
+                e.Graphics.DrawImage(torch[torchDownLeftAnimationPoint], torchDownLeft);
+                e.Graphics.DrawImage(torch[torchUpRightAnimationPoint], torchUpRight);
+                e.Graphics.DrawImage(torch[torchDownRightAnimationPoint], torchDownRight);
 
-            e.Graphics.DrawImage(torchBlue[torchTopLeftAnimationPoint], torchTopLeft);
-            e.Graphics.DrawImage(torchBlue[torchTopRightAnimationPoint], torchTopRight);
+                e.Graphics.DrawImage(torchBlue[torchTopLeftAnimationPoint], torchTopLeft);
+                e.Graphics.DrawImage(torchBlue[torchTopRightAnimationPoint], torchTopRight);
 
-            e.Graphics.DrawImage(chosenCharacterDisplay, player);
+                foreach (Villain enemy in villainList)
+                {
+                    e.Graphics.DrawImage(enemy.VillainDisplay, enemy.Area);
+                }
 
-            e.Graphics.FillRectangle(healthBrush, healthBar);
-            e.Graphics.FillRectangle(manaBrush, manaBar);
-            e.Graphics.FillRectangle(staminaBrush, staminaBar);
+                e.Graphics.DrawImage(chosenCharacterDisplay, player);
 
-            e.Graphics.DrawImage(HealthBarOutline, healthBarOutline);
-            e.Graphics.DrawImage(ManaBarOutline, manaBarOutline);
-            e.Graphics.DrawImage(StaminaBarOutline, staminaBarOutline);
+                e.Graphics.FillRectangle(healthBrush, healthBar);
+                e.Graphics.FillRectangle(manaBrush, manaBar);
+                e.Graphics.FillRectangle(staminaBrush, staminaBar);
+
+                e.Graphics.DrawImage(HealthBarOutline, healthBarOutline);
+                e.Graphics.DrawImage(ManaBarOutline, manaBarOutline);
+                e.Graphics.DrawImage(StaminaBarOutline, staminaBarOutline);
+
+                e.Graphics.DrawImage(Frame, itemOutline);
+                e.Graphics.DrawImage(Frame, weaponOutline);
+
+                e.Graphics.FillRectangle(itemsBrush, itemDisplay);
+                e.Graphics.FillRectangle(itemsBrush, weaponDisplay);
+
+                e.Graphics.DrawImage(Sigil, itemDisplay);
+                e.Graphics.DrawImage(Keris, weaponDisplay);
+
+                e.Graphics.DrawImage(Pause, pauseButton);
+
+                if (leftClick == true)
+                {
+                    e.Graphics.DrawLine(new Pen(Color.Black), player.X + player.Width / 2, player.Y + player.Height / 2, MousePosition.X, MousePosition.Y);
+                }
+
+                if (rightClick == true)
+                {
+                    e.Graphics.DrawLine(new Pen(Color.White), player.X + player.Width / 2, player.Y + player.Height / 2, MousePosition.X, MousePosition.Y);
+                }
+
+                if (mouseWheel == true)
+                {
+                    e.Graphics.DrawLine(new Pen(Color.Gray), player.X + player.Width / 2, player.Y + player.Height / 2, MousePosition.X, MousePosition.Y);
+                }
+            }
 
             e.Graphics.DrawImage(PentagramTarget, target);
-
-            e.Graphics.DrawImage(Frame, itemOutline);
-            e.Graphics.DrawImage(Frame, weaponOutline);
-
-            e.Graphics.FillRectangle(itemsBrush, itemDisplay);
-            e.Graphics.FillRectangle(itemsBrush, weaponDisplay);
-
-            e.Graphics.DrawImage(Sigil, itemDisplay);
-            e.Graphics.DrawImage(Keris, weaponDisplay);
-
-            e.Graphics.DrawImage(Pause, pauseButton);
-
-            if (leftClick == true)
-            {
-                e.Graphics.DrawLine(new Pen(Color.Black), player.X + player.Width / 2, player.Y + player.Height / 2, MousePosition.X, MousePosition.Y);
-            }
-
-            if (rightClick == true)
-            {
-                e.Graphics.DrawLine(new Pen(Color.White), player.X + player.Width / 2, player.Y + player.Height / 2, MousePosition.X, MousePosition.Y);
-            }
-
-            if (mouseWheel == true)
-            {
-                e.Graphics.DrawLine(new Pen(Color.Gray), player.X + player.Width / 2, player.Y + player.Height / 2, MousePosition.X, MousePosition.Y);
-            }
         }
 
         public void Reset()
         {
+            SurvivalWatch.Stop();
+            SurvivalWatch.Reset();
+
             if (chosenCharacter == "Cultist")
             {
                 chosenCharacterDisplay = Properties.Resources.Cultist__01_;
             }
+
+            collectedWeapons.Clear();
+            collectedItems.Clear();
+            villainList.Clear();
+
+            Cursor.Hide();
+
+            walls[0] = Properties.Resources.GroundType1;
+            walls[1] = Properties.Resources.GroundType2;
+            walls[2] = Properties.Resources.GroundType3;
+            walls[3] = Properties.Resources.GroundType4;
+
+            backStorer = rnd.Next(0, 4);
+
+            wallStorer = rnd.Next(0, 4);
+
+            while (wallStorer == backStorer)
+            {
+                wallStorer = rnd.Next(0, 4);
+            }
+
+            wallOutlineStorer = rnd.Next(0, 4);
+
+            while (wallOutlineStorer == backStorer || wallOutlineStorer == wallStorer)
+            {
+                wallOutlineStorer = rnd.Next(0, 4);
+            }
+
+            wallBrush = new TextureBrush(walls[wallStorer]);
+            wallOutline = new TextureBrush(walls[wallOutlineStorer]);
+            wallOutlinePen = new Pen(wallOutline, 15);
+
+            this.BackgroundImage = walls[backStorer];
+
+            player.Location = new Point(this.Width / 2 - 55, this.Height / 2 - 75);
+
+            pAccelerationX = 0;
+            pAccelerationY = 0;
+
+            //Setup Resource Bars
+            health = maxHealth;
+
+            mana = maxMana;
+
+            stamina = maxStamina;
+
+            healthBarOutline.Size = new Size(health * 2, 75);
+            manaBarOutline.Size = new Size(mana * 2 - 8, 75);
+            staminaBarOutline.Size = new Size(stamina * 2, 75);
+
+            //Setup Torch Animation Start Points
+            torchUpLeftAnimationPoint = rnd.Next(0, 8);
+            torchUpRightAnimationPoint = rnd.Next(0, 8);
+            torchDownLeftAnimationPoint = rnd.Next(0, 8);
+            torchDownRightAnimationPoint = rnd.Next(0, 8);
+
+            torchTopLeftAnimationPoint = rnd.Next(0, 11);
+            torchTopRightAnimationPoint = rnd.Next(0, 11);
+
+            bigDoorAAnimationPoint = 0;
+            bigDoorBAnimationPoint = 0;
+            bigDoorCAnimationPoint = 0;
+
+            smallDoorLeftAAnimationPoint = 0;
+            smallDoorLeftBAnimationPoint = 0;
+            smallDoorLeftCAnimationPoint = 0;
+            smallDoorRightAAnimationPoint = 0;
+            smallDoorRightBAnimationPoint = 0;
+            smallDoorRightCAnimationPoint = 0;
+
+            Cursor.Hide();
+
+            gameOperator.Enabled = true;
         }
 
         private async void gameOperator_Tick(object sender, EventArgs e)
         {
+            //Start the Stopwatch
+            if (SurvivalWatch.IsRunning == false)
+            {
+                SurvivalWatch.Start();
+            }
+
             //Set rectangle to hold the new location
             moveHolder.Location = player.Location;
 
@@ -1030,22 +1167,22 @@ namespace OccultTower
             moveHolder.Y += pAccelerationY;
             player.Location = moveHolder.Location;
 
-            if (player.IntersectsWith(topWall))
+            if (player.IntersectsWith(topWall) || player.Y < 10)
             {
                 player.Y = topWall.Y + topWall.Height;
             }
 
-            if (player.IntersectsWith(bottomWall))
+            if (player.IntersectsWith(bottomWall) || player.Y > this.Height - 10)
             {
                 player.Y = bottomWall.Y - player.Height;
             }
 
-            if (player.IntersectsWith(leftWall))
+            if (player.IntersectsWith(leftWall) || player.X < 10)
             {
                 player.X = leftWall.X + leftWall.Width;
             }
 
-            if (player.IntersectsWith(rightWall))
+            if (player.IntersectsWith(rightWall) || player.X > this.Width - 10d)
             {
                 player.X = rightWall.X - player.Width;
             }
@@ -1100,7 +1237,8 @@ namespace OccultTower
                 smallDoorLeftAAnimationPoint++;
                 if (smallDoorLeftAAnimationPoint == smallDoorLeftAImages.Length)
                 {
-                    //Spawn Skeleton
+                    villainList.Add(new Villain());
+                    villainList[villainList.Count - 1].Setup(skeletonDown[0], 10, 125, rnd.Next(5, 8), "Skeleton", 0, new Rectangle(smallDoorLeftA.X + smallDoorLeftA.Width - 25, smallDoorLeftA.Y + smallDoorLeftA.Height - 75, 25, 75));
                     smallDoorLeftAIsOpening = false;
                 }
             }
@@ -1113,7 +1251,7 @@ namespace OccultTower
                 }
             }
 
-            if (rnd.Next(0, 101) == 1)
+            if (rnd.Next(0, 1001) == 1)
             {
                 smallDoorLeftBIsOpening = true;
             }
@@ -1123,7 +1261,8 @@ namespace OccultTower
                 smallDoorLeftBAnimationPoint++;
                 if (smallDoorLeftBAnimationPoint == smallDoorLeftBImages.Length)
                 {
-                    //Spawn Skeleton
+                    villainList.Add(new Villain());
+                    villainList[villainList.Count - 1].Setup(skeletonDown[0], 5, 50, rnd.Next(10, 16), "Skeleton", 0, new Rectangle(smallDoorLeftB.X + smallDoorLeftB.Width - 15, smallDoorLeftB.Y + smallDoorLeftB.Height - 50, 15, 50));
                     smallDoorLeftBIsOpening = false;
                 }
             }
@@ -1146,7 +1285,8 @@ namespace OccultTower
                 smallDoorLeftCAnimationPoint++;
                 if (smallDoorLeftCAnimationPoint == smallDoorLeftCImages.Length)
                 {
-                    //Spawn Skeleton
+                    villainList.Add(new Villain());
+                    villainList[villainList.Count - 1].Setup(skeletonDown[0], 10, 125, rnd.Next(5,8), "Skeleton", 0, new Rectangle(smallDoorLeftC.X + smallDoorLeftC.Width - 25, smallDoorLeftC.Y + smallDoorLeftC.Height - 75, 25, 75));
                     smallDoorLeftCIsOpening = false;
                 }
             }
@@ -1169,7 +1309,8 @@ namespace OccultTower
                 smallDoorRightAAnimationPoint++;
                 if (smallDoorRightAAnimationPoint == smallDoorRightAImages.Length)
                 {
-                    //Spawn Skeleton
+                    villainList.Add(new Villain());
+                    villainList[villainList.Count - 1].Setup(skeletonDown[0], 10, 125, rnd.Next(5,8), "Skeleton", 0, new Rectangle(smallDoorRightA.X + smallDoorRightA.Width - 25, smallDoorRightA.Y + smallDoorRightA.Height - 75, 25, 75));
                     smallDoorRightAIsOpening = false;
                 }
             }
@@ -1182,7 +1323,7 @@ namespace OccultTower
                 }
             }
 
-            if (rnd.Next(0, 101) == 1)
+            if (rnd.Next(0, 1001) == 1)
             {
                 smallDoorRightBIsOpening = true;
             }
@@ -1192,7 +1333,8 @@ namespace OccultTower
                 smallDoorRightBAnimationPoint++;
                 if (smallDoorRightBAnimationPoint == smallDoorRightBImages.Length)
                 {
-                    //Spawn Skeleton
+                    villainList.Add(new Villain());
+                    villainList[villainList.Count - 1].Setup(skeletonDown[0], 5, 50, rnd.Next(10,16), "Skeleton", 0, new Rectangle(smallDoorRightB.X + smallDoorRightB.Width - 15, smallDoorRightB.Y + smallDoorRightB.Height - 50, 15, 50));
                     smallDoorRightBIsOpening = false;
                 }
             }
@@ -1215,7 +1357,8 @@ namespace OccultTower
                 smallDoorRightCAnimationPoint++;
                 if (smallDoorRightCAnimationPoint == smallDoorRightCImages.Length)
                 {
-                    //Spawn Skeleton
+                    villainList.Add(new Villain());
+                    villainList[villainList.Count - 1].Setup(skeletonDown[0], 10, 125, rnd.Next(3,8), "Skeleton", 0, new Rectangle(smallDoorRightC.X + smallDoorRightC.Width - 25, smallDoorRightC.Y + smallDoorRightC.Height - 75, 25, 75));
                     smallDoorRightCIsOpening = false;
                 }
             }
@@ -1228,7 +1371,7 @@ namespace OccultTower
                 }
             }
 
-            if (rnd.Next(0, 101) == 1)
+            if (rnd.Next(0, 501) == 1)
             {
                 bigDoorAIsOpening = true;
             }
@@ -1238,7 +1381,8 @@ namespace OccultTower
                 bigDoorAAnimationPoint++;
                 if (bigDoorAAnimationPoint == bigDoorAImages.Length)
                 {
-                    //Spawn Skeleton
+                    villainList.Add(new Villain());
+                    villainList[villainList.Count - 1].Setup(skeletonDown[0], 25, 500, rnd.Next(3,6), "Skeleton", 0, new Rectangle(bigDoorA.X + bigDoorA.Width - 50, bigDoorA.Y + bigDoorA.Height - 100, 50, 100));
                     bigDoorAIsOpening = false;
                 }
             }
@@ -1251,7 +1395,7 @@ namespace OccultTower
                 }
             }
 
-            if (rnd.Next(0, 101) == 1)
+            if (rnd.Next(0, 5001) == 1)
             {
                 bigDoorBIsOpening = true;
             }
@@ -1261,7 +1405,8 @@ namespace OccultTower
                 bigDoorBAnimationPoint++;
                 if (bigDoorBAnimationPoint == bigDoorBImages.Length)
                 {
-                    //Spawn Skeleton
+                    villainList.Add(new Villain());
+                    villainList[villainList.Count - 1].Setup(skeletonDown[0], 25, 500, 1, "Skeleton", 0, new Rectangle(bigDoorB.X + bigDoorB.Width - 100, bigDoorB.Y + bigDoorB.Height - 150, 100, 150));
                     bigDoorBIsOpening = false;
                 }
             }
@@ -1274,7 +1419,7 @@ namespace OccultTower
                 }
             }
 
-            if (rnd.Next(0, 101) == 1)
+            if (rnd.Next(0, 501) == 1)
             {
                 bigDoorCIsOpening = true;
             }
@@ -1284,7 +1429,8 @@ namespace OccultTower
                 bigDoorCAnimationPoint++;
                 if (bigDoorCAnimationPoint == bigDoorCImages.Length)
                 {
-                    //Spawn Skeleton
+                    villainList.Add(new Villain());
+                    villainList[villainList.Count - 1].Setup(skeletonDown[0], 25, 500, rnd.Next(3,6), "Skeleton", 0, new Rectangle(bigDoorC.X + bigDoorC.Width - 50, bigDoorC.Y + bigDoorC.Height - 100, 50, 100));
                     bigDoorCIsOpening = false;
                 }
             }
@@ -1297,15 +1443,426 @@ namespace OccultTower
                 }
             }
 
+            foreach (Villain enemy in villainList)
+            {
+                if (enemy.Type == "Skeleton")
+                {
+                    if (enemy.Area.IntersectsWith(player) && shadowDash <= 0)
+                    {
+                        health -= enemy.Damage;
+
+                        if (enemy.Area.X > player.X)
+                        {
+                            pAccelerationX = -10;
+                        }
+
+                        else if (enemy.Area.X < player.X)
+                        {
+                            pAccelerationX = 10;
+                        }
+
+                        if (enemy.Area.Y > player.Y)
+                        {
+                            pAccelerationY = -10;
+                        }
+
+                        else if (enemy.Area.Y < player.Y)
+                        {
+                            pAccelerationY = 10;
+                        }
+                    }
+
+                    else
+                    {
+                        if (enemy.Area.Y < player.Y)
+                        {
+                            enemy.Area.Y += enemy.Speed;
+                            enemy.VillainDisplay = skeletonDown[enemy.AnimationPoint];
+                        }
+
+                        else if (enemy.Area.Y > player.Y)
+                        {
+                            enemy.Area.Y -= enemy.Speed;
+                            enemy.VillainDisplay = skeletonUp[enemy.AnimationPoint];
+                        }
+
+                        if (enemy.Area.X < player.X)
+                        {
+                            enemy.Area.X += enemy.Speed;
+                            enemy.VillainDisplay = skeletonRight[enemy.AnimationPoint];
+                        }
+
+                        else if (enemy.Area.X > player.X)
+                        {
+                            enemy.Area.X -= enemy.Speed;
+                            enemy.VillainDisplay = skeletonLeft[enemy.AnimationPoint];
+                        }
+                    }
+
+                    enemy.AnimationPoint++;
+
+                    if (enemy.AnimationPoint >= 9)
+                    {
+                        enemy.AnimationPoint = 0;
+                    }
+                }
+            }
+
             //Set the bars to the resources remaining
             healthBar.Size = new Size(Convert.ToInt16(Math.Round(health * 1.8)), 15);
             manaBar.Size = new Size(Convert.ToInt16(Math.Round(mana * 1.8) - 9), 15);
             staminaBar.Size = new Size(Convert.ToInt16(Math.Round(stamina * 1.8)), 15);
 
-            //Look Here
+            //Set Custom Cursor
             target.Location = new Point(Convert.ToInt16(MousePosition.X - target.Width / 2), Convert.ToInt16(MousePosition.Y - target.Height / 2));
 
+            if (escPressed == true || target.IntersectsWith(pauseButton) && leftClick == true)
+            {
+                SurvivalWatch.Stop();
+                PauseOp();
+            }
+
+            if (health <= 0)
+            {
+                gameOperator.Stop();
+                deathOperator.Enabled = true;
+            }
+
             Refresh();
+        }
+
+        private void pauseTimer_Tick(object sender, EventArgs e)
+        {
+            //Set Custom Cursor (Does not work, is drawing on form)
+            //target.Location = new Point(Convert.ToInt16(MousePosition.X - target.Width / 2), Convert.ToInt16(MousePosition.Y - target.Height / 2));
+
+            Cursor.Show();
+
+            Refresh();
+        }
+
+        public void PauseOp()
+        {
+            escPressed = false;
+
+            if (pauseOverlay.Visible == false)
+            {
+                gameOperator.Stop();
+
+                pauseOverlay.Visible = true;
+                pauseLabel.Visible = true;
+                resumeButton.Visible = true;
+                restartButton.Visible = true;
+                optionsButtonP.Visible = true;
+                exitToMainMenuButton.Visible = true;
+                exitGameButton.Visible = true;
+
+                pauseOverlay.Location = new Point(0, 0);
+                pauseOverlay.Size = this.Size;
+
+                pauseLabel.Location = new Point(this.Width / 2 - pauseLabel.Width / 2, 25);
+                resumeButton.Location = new Point(this.Width / 2 - resumeButton.Width / 2, 200);
+                restartButton.Location = new Point(this.Width / 2 - restartButton.Width / 2, 350);
+                optionsButtonP.Location = new Point(this.Width / 2 - optionsButtonP.Width / 2, 500);
+                exitToMainMenuButton.Location = new Point(Convert.ToInt32(this.Width / 2 - exitToMainMenuButton.Width * 1.5), 600);
+                exitGameButton.Location = new Point(Convert.ToInt32(this.Width / 2 + exitGameButton.Width / 2), 600);
+
+                Cursor.Show();
+
+                pauseTimer.Enabled = true;
+            }
+
+            else
+            {
+                pauseTimer.Enabled = false;
+
+                pauseOverlay.Visible = false;
+                pauseLabel.Visible = false;
+                resumeButton.Visible = false;
+                restartButton.Visible = false;
+                optionsButtonP.Visible = false;
+                exitToMainMenuButton.Visible = false;
+                exitGameButton.Visible = false;
+
+                gameOperator.Enabled = true;
+
+                Cursor.Hide();
+            }
+        }
+
+        private void exitGameButton_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
+        }
+
+        private void restartButton_Click(object sender, EventArgs e)
+        {
+            Reset();
+            PauseOp();
+        }
+
+        private void resumeButton_Click(object sender, EventArgs e)
+        {
+            PauseOp();
+        }
+
+        private void exitToMainMenuButton_Click(object sender, EventArgs e)
+        {
+            PauseOp();
+            gameOperator.Enabled = false;
+            menuOperator.Enabled = true;
+        }
+
+        private void optionsButtonP_Click(object sender, EventArgs e)
+        {
+            PauseOp();
+            ImageOverlay.BackgroundImage = Properties.Resources.OccultTowerOptionMenu;
+            optionsOperator.Enabled = true;
+        }
+
+        private void startOperator_Tick(object sender, EventArgs e)
+        {
+            ImageOverlay.Visible = true;
+            ImageOverlay.Location = new Point(0, 0);
+            ImageOverlay.Size = this.Size;
+            ImageOverlay.BackgroundImageLayout = ImageLayout.Zoom;
+            ImageOverlay.BackgroundImage = Properties.Resources.OccultTowerStartScreen;
+
+            startButton.Location = new Point(this.Width / 2 - startButton.Width / 2, 250);
+            optionButtonS.Location = new Point(this.Width / 2 - optionButtonS.Width / 2, 400);
+            exitGameButton.Location = new Point(this.Width / 2 - exitGameButton.Width / 2, 550);
+
+            startButton.Visible = true;
+            optionButtonS.Visible = true;
+            exitGameButton.Visible = true;
+
+            Cursor.Show();
+        }
+
+        private void optionsOperatorS_Tick(object sender, EventArgs e)
+        {
+            startButton.Visible = false;
+            optionButtonS.Visible = false;
+            exitGameButton.Visible = false;
+
+            ImageOverlay.BackgroundImage = Properties.Resources.OccultTowerOptionMenu;
+
+            Rectangle MouseTracker = new Rectangle(MousePosition.X, MousePosition.Y, 25, 25);
+
+            if (MouseTracker.IntersectsWith(new Rectangle(125, 0, 125, 125)) && leftClick == true || escPressed == true)
+            {
+                startOperator.Enabled = true;
+                optionsOperatorS.Stop();
+            }
+
+            if (MouseTracker.IntersectsWith(new Rectangle(this.Width / 2 - 125, this.Height - 50, 250, 125)) && leftClick == true || escPressed == true)
+            {
+                controlOperator.Enabled = true;
+                optionsOperatorS.Stop();
+            }
+        }
+
+        private void controlOperator_Tick(object sender, EventArgs e)
+        {
+            ImageOverlay.BackgroundImage = Properties.Resources.OccultTowerControlsOverlay;
+
+            Rectangle MouseTracker = new Rectangle(MousePosition.X, MousePosition.Y, 25, 25);
+
+            if (MouseTracker.IntersectsWith(new Rectangle(125, 0, 125, 125)) && leftClick == true || escPressed == true)
+            {
+                optionsOperatorS.Enabled = true;
+                controlOperator.Stop();
+            }
+        }
+
+        private void optionsOperator_Tick(object sender, EventArgs e)
+        {
+            Rectangle MouseTracker = new Rectangle(MousePosition.X, MousePosition.Y, 25, 25);
+
+            if (MouseTracker.IntersectsWith(new Rectangle(125, 0, 125, 125)) && leftClick == true || escPressed == true)
+            {
+                startOperator.Enabled = true;
+                optionsOperator.Stop();
+            }
+
+            if (MouseTracker.IntersectsWith(new Rectangle(this.Width / 2 - 125, this.Height - 50, 250, 125)) && leftClick == true || escPressed == true)
+            {
+                controlOperator.Enabled = true;
+                optionsOperator.Stop();
+            }
+        }
+
+        private void menuOperator_Tick(object sender, EventArgs e)
+        {
+            ImageOverlay.BackgroundImage = Properties.Resources.OccultTower_Main_Menu;
+
+            Rectangle MouseTracker = new Rectangle(MousePosition.X, MousePosition.Y, 25, 25);
+
+            if (MouseTracker.IntersectsWith(new Rectangle(this.Width / 2 - 50, this.Height / 2 - 25, 100, 50)) && leftClick == true || escPressed == true)
+            {
+                //Start the game
+                Reset();
+                gameOperator.Enabled = true;
+
+                //Close the menu
+                ImageOverlay.Visible = false;
+                menuOperator.Stop();
+            }
+
+            if (MouseTracker.IntersectsWith(new Rectangle(125, 0, 125, 125)) && leftClick == true || escPressed == true)
+            {
+                //Go back to the start screen
+                startOperator.Enabled = true;
+
+                //Close the menu
+                menuOperator.Stop();
+            }
+
+            if (MouseTracker.IntersectsWith(new Rectangle(this.Width - 250, 0, 125, 125)) && leftClick == true || escPressed == true)
+            {
+                //Start the game
+                optionsOperatorM.Enabled = true;
+
+                //Close the menu
+                menuOperator.Stop();
+            }
+
+            if (MouseTracker.IntersectsWith(new Rectangle(125, this.Height - 65, 125, 125)) && leftClick == true || escPressed == true)
+            {
+                //Close the program
+                Application.Exit();
+            }
+        }
+
+        private void optionButtonS_Click(object sender, EventArgs e)
+        {
+            startOperator.Stop();
+            optionsOperatorS.Enabled = true;
+        }
+
+        private void startButton_Click(object sender, EventArgs e)
+        {
+            menuOperator.Enabled = true;
+
+            startButton.Visible = false;
+            optionButtonS.Visible = false;
+            exitGameButton.Visible = false;
+
+            startOperator.Stop();
+        }
+
+        private void deathOperator_Tick(object sender, EventArgs e)
+        {
+            SurvivalWatch.Stop();
+
+            ImageOverlay.Visible = true;
+            ImageOverlay.Location = new Point(0, 00);
+            ImageOverlay.Size = new Size(this.Width,this.Height - 200);
+            ImageOverlay.BackgroundImageLayout = ImageLayout.Zoom;
+            ImageOverlay.BackgroundImage = Properties.Resources.Tombstone;
+            Cursor.Show();
+
+            deathTimeLabel.Text = SurvivalWatch.Elapsed.ToString("mm\\:ss\\.ff");
+            deathTimeLabel.Visible = true;
+            deathTimeLabel.Location = new Point(this.Width / 2 - deathTimeLabel.Width / 2, 285);
+
+            Rectangle MouseTracker = new Rectangle(MousePosition.X, MousePosition.Y, 25, 25);
+
+            if (MouseTracker.IntersectsWith(new Rectangle(this.Width / 2 - 75, ImageOverlay.Height - 20, 150, 50)) && leftClick == true)
+            {
+                //Activate the next timer
+                menuOperator.Enabled = true;
+
+                //Change Visible Elements
+                ImageOverlay.Size = this.Size;
+                deathTimeLabel.Visible = false;
+
+                //Stop the current timer
+                deathOperator.Stop();
+            }
+
+            if (MouseTracker.IntersectsWith(new Rectangle(this.Width / 2 - 75 - 150 - 50, ImageOverlay.Height - 20, 150, 50)) && leftClick == true)
+            {
+                //Activate the next timer
+                Reset();
+                ImageOverlay.Visible = false;
+                SurvivalWatch.Reset();
+                gameOperator.Enabled = true;
+
+                //Change Visible Elements
+                ImageOverlay.Size = this.Size;
+                deathTimeLabel.Visible = false;
+
+                //Stop the current timer
+                deathOperator.Stop();
+            }
+
+            if (MouseTracker.IntersectsWith(new Rectangle(this.Width / 2 - 75 + 150 + 50, ImageOverlay.Height - 20, 150, 50)) && leftClick == true)
+            {
+                //Exit the Application
+                Application.Exit();
+            }
+        }
+
+        private void controlOperatorP_Tick(object sender, EventArgs e)
+        {
+            //Set the background to the controls overlay
+            ImageOverlay.BackgroundImage = Properties.Resources.OccultTowerControlsOverlay;
+
+            //Track the mouse
+            Rectangle MouseTracker = new Rectangle(MousePosition.X, MousePosition.Y, 25, 25);
+
+            if (MouseTracker.IntersectsWith(new Rectangle(125, 0, 125, 125)) && leftClick == true || escPressed == true)
+            {
+                //Go back to the options menu
+                optionsOperator.Enabled = true;
+
+                //Hide the controls
+                controlOperatorP.Stop();
+            }
+        }
+
+        private void optionsOperatorM_Tick(object sender, EventArgs e)
+        {
+            //Track the mouse
+            Rectangle MouseTracker = new Rectangle(MousePosition.X, MousePosition.Y, 25, 25);
+
+            if (MouseTracker.IntersectsWith(new Rectangle(125, 0, 125, 125)) && leftClick == true || escPressed == true)
+            {
+                //Go back to the menu
+                menuOperator.Enabled = true;
+
+                //Close the options
+                optionsOperator.Stop();
+            }
+
+            if (MouseTracker.IntersectsWith(new Rectangle(this.Width / 2 - 125, this.Height - 50, 250, 125)) && leftClick == true || escPressed == true)
+            {
+                //Show the controlls
+                controlOperatorM.Enabled = true;
+
+                //Hide the options
+                optionsOperator.Stop();
+            }
+        }
+
+        private void controlOperatorM_Tick(object sender, EventArgs e)
+        {
+            //Set the background to the controls overlay
+            ImageOverlay.BackgroundImage = Properties.Resources.OccultTowerControlsOverlay;
+
+
+            //Track the mouse
+            Rectangle MouseTracker = new Rectangle(MousePosition.X, MousePosition.Y, 25, 25);
+
+            if (MouseTracker.IntersectsWith(new Rectangle(125, 0, 125, 125)) && leftClick == true || escPressed == true)
+            {
+                //Go back to the options menu
+                optionsOperatorM.Enabled = true;
+
+                //Hide the controlls
+                controlOperatorM.Stop();
+            }
         }
     }
 }
