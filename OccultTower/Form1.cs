@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.IO;
 
 /* Grady Rueffer
  * 152446035
@@ -25,6 +26,13 @@ namespace OccultTower
     public partial class Form1 : Form
     {
         bool StartGameFromStart = false;
+
+        System.Windows.Media.MediaPlayer menuMusic = new System.Windows.Media.MediaPlayer();
+        System.Windows.Media.MediaPlayer gameMusic = new System.Windows.Media.MediaPlayer();
+        System.Windows.Media.MediaPlayer deathMusic = new System.Windows.Media.MediaPlayer();
+        System.Windows.Media.MediaPlayer torchAmbiance = new System.Windows.Media.MediaPlayer();
+        System.Windows.Media.MediaPlayer lowHealthMusic = new System.Windows.Media.MediaPlayer();
+        System.Windows.Media.MediaPlayer gameStart = new System.Windows.Media.MediaPlayer();
 
         Stopwatch SurvivalWatch = new Stopwatch();
 
@@ -342,6 +350,19 @@ namespace OccultTower
 
             Cursor.Hide();
 
+            menuMusic.Open(new Uri(Application.StartupPath + "/Resources/480932__wi-photos__menu.wav"));
+            gameMusic.Open(new Uri(Application.StartupPath + "/Resources/544906__victor_natas__mysterious-and-spooky-music-version-2.wav"));
+            deathMusic.Open(new Uri(Application.StartupPath + "/Resources/Funeral March  Organ Version - Standard Quality 360p [File2HD.com].wav"));
+            torchAmbiance.Open(new Uri(Application.StartupPath + "/Resources/649086__jenyaynex__crackling-fire2.wav"));
+            lowHealthMusic.Open(new Uri(Application.StartupPath + "/Resources/515405__matrixxx___retro_gaming.wav"));
+            gameStart.Open(new Uri(Application.StartupPath + "/Resources/654521__sergequadrado__scary-laugh-3.wav"));
+
+            menuMusic.MediaEnded += new EventHandler(menuMusic_MediaEnded);
+            gameMusic.MediaEnded += new EventHandler(gameMusic_MediaEnded);
+            deathMusic.MediaEnded += new EventHandler(deathMusic_MediaEnded);
+            torchAmbiance.MediaEnded += new EventHandler(torchAmbiance_MediaEnded);
+            lowHealthMusic.MediaEnded += new EventHandler(lowHealthMusic_MediaEnded);
+
             walls[0] = Properties.Resources.GroundType1;
             walls[1] = Properties.Resources.GroundType2;
             walls[2] = Properties.Resources.GroundType3;
@@ -372,20 +393,19 @@ namespace OccultTower
             topWall = new Rectangle(0, 0, this.Width, 100);
             bottomWall = new Rectangle(100, this.Height - 175, this.Width, 100);
             leftWall = new Rectangle(0, 0, 100, this.Height);
-            rightWall = new Rectangle(this.Width - 20, 0, 100, this.Height);
+            rightWall = new Rectangle(this.Width - 120, 0, 100, this.Height);
 
             Cultist.Setup(Properties.Resources.Cultist__01_, 9, Properties.Resources.Cultist__01_, Properties.Resources.Cultist__01_, Properties.Resources.Cultist__01_);
 
             KerisMain.Setup(Properties.Resources.Keris, Properties.Resources.PentagramTarget, 25, "None", "Straight", 5, 2, 5);
 
-            healthBarOutline.Location = new Point(this.Width - maxHealth * 2 + 50, 0);
+            healthBarOutline.Location = new Point(this.Width - maxHealth * 2 - 43, 0);
             healthBar.Location = new Point(healthBarOutline.X + 15, healthBarOutline.Y + healthBarOutline.Height / 2 + 30);
 
-            manaBarOutline.Location = new Point(this.Width - maxMana * 2 + 57, 35);
-            manaBar.Location = new Point(manaBarOutline.X + 17, manaBarOutline.Y + manaBarOutline.Height / 2 + 35);
+            manaBarOutline.Location = new Point(this.Width - maxMana * 2 - 43, 35);
+            manaBar.Location = new Point(manaBarOutline.X + 15, manaBarOutline.Y + manaBarOutline.Height / 2 + 35);
 
-            staminaBarOutline.Location = new Point(this.Width - maxStamina * 2 + 50, 90);
-
+            staminaBarOutline.Location = new Point(this.Width - maxStamina * 2 - 43, 90);
             staminaBar.Location = new Point(staminaBarOutline.X + 15, staminaBarOutline.Y + staminaBarOutline.Height / 2 + 35);
 
             player = new Rectangle(this.Width / 2 - 55, this.Height / 2 - 75, 45, 55);
@@ -514,9 +534,9 @@ namespace OccultTower
             bigDoorCImages[8] = Properties.Resources.DoorB__1_;
 
             //Setup Big Door Locations
-            bigDoorA.Location = new Point(Convert.ToInt16(topWall.X + topWall.Width / 4 - 150), topWall.Y + topWall.Height - 100);
-            bigDoorB.Location = new Point(Convert.ToInt16(topWall.X + topWall.Width / 2 - 33), topWall.Y + topWall.Height - 100);
-            bigDoorC.Location = new Point(Convert.ToInt16(topWall.X + topWall.Width - topWall.Width / 4 + 75), topWall.Y + topWall.Height - 100);
+            bigDoorA.Location = new Point(Convert.ToInt16(topWall.X + topWall.Width / 4 - 225), topWall.Y + topWall.Height - 100);
+            bigDoorB.Location = new Point(Convert.ToInt16(topWall.X + topWall.Width / 2 - 85), topWall.Y + topWall.Height - 100);
+            bigDoorC.Location = new Point(Convert.ToInt16(topWall.X + topWall.Width - topWall.Width / 4 + 25), topWall.Y + topWall.Height - 100);
 
             //Setup Small Door Animations
             smallDoorLeftAImages[0] = Properties.Resources.SideDoorALeft__2_;
@@ -611,6 +631,7 @@ namespace OccultTower
             }
             else
             {
+                menuMusic.Pause();
                 gameOperator.Enabled = true;
             }
         }
@@ -891,6 +912,21 @@ namespace OccultTower
 
         private async void gameOperator_Tick(object sender, EventArgs e)
         {
+            torchAmbiance.Play();
+
+            if (health > 25)
+            {
+                lowHealthMusic.Pause();
+                gameMusic.Play();
+            }
+            else
+            {
+                gameMusic.Pause();
+                lowHealthMusic.Play();
+            }
+
+            this.WindowState = FormWindowState.Maximized;
+
             //Start the Stopwatch
             if (SurvivalWatch.IsRunning == false)
             {
@@ -1037,6 +1073,7 @@ namespace OccultTower
                 if (spacePressed == true && shadowDash == 0)
                 {
                     shadowDash = dashDuration;
+                    PlayShadow();
                 }
 
                 if (moveHolder.X < player.X)
@@ -1165,6 +1202,12 @@ namespace OccultTower
             }
             moveHolder.X += pAccelerationX;
             moveHolder.Y += pAccelerationY;
+
+            if (player.Location != moveHolder.Location && rnd.Next(0, 2) == 1)
+            {
+                PlayFootstep();
+            }
+
             player.Location = moveHolder.Location;
 
             if (player.IntersectsWith(topWall) || player.Y < 10)
@@ -1230,6 +1273,7 @@ namespace OccultTower
             if (rnd.Next(0, 101) == 1)
             {
                 smallDoorLeftAIsOpening = true;
+                PlayCreak();
             }
 
             if (smallDoorLeftAIsOpening == true)
@@ -1254,6 +1298,7 @@ namespace OccultTower
             if (rnd.Next(0, 1001) == 1)
             {
                 smallDoorLeftBIsOpening = true;
+                PlayCreak();
             }
 
             if (smallDoorLeftBIsOpening == true)
@@ -1278,6 +1323,7 @@ namespace OccultTower
             if (rnd.Next(0, 101) == 1)
             {
                 smallDoorLeftCIsOpening = true;
+                PlayCreak();
             }
 
             if (smallDoorLeftCIsOpening == true)
@@ -1286,7 +1332,7 @@ namespace OccultTower
                 if (smallDoorLeftCAnimationPoint == smallDoorLeftCImages.Length)
                 {
                     villainList.Add(new Villain());
-                    villainList[villainList.Count - 1].Setup(skeletonDown[0], 10, 125, rnd.Next(5,8), "Skeleton", 0, new Rectangle(smallDoorLeftC.X + smallDoorLeftC.Width - 25, smallDoorLeftC.Y + smallDoorLeftC.Height - 75, 25, 75));
+                    villainList[villainList.Count - 1].Setup(skeletonDown[0], 10, 125, rnd.Next(5, 8), "Skeleton", 0, new Rectangle(smallDoorLeftC.X + smallDoorLeftC.Width - 25, smallDoorLeftC.Y + smallDoorLeftC.Height - 75, 25, 75));
                     smallDoorLeftCIsOpening = false;
                 }
             }
@@ -1302,6 +1348,7 @@ namespace OccultTower
             if (rnd.Next(0, 101) == 1)
             {
                 smallDoorRightAIsOpening = true;
+                PlayCreak();
             }
 
             if (smallDoorRightAIsOpening == true)
@@ -1310,7 +1357,7 @@ namespace OccultTower
                 if (smallDoorRightAAnimationPoint == smallDoorRightAImages.Length)
                 {
                     villainList.Add(new Villain());
-                    villainList[villainList.Count - 1].Setup(skeletonDown[0], 10, 125, rnd.Next(5,8), "Skeleton", 0, new Rectangle(smallDoorRightA.X + smallDoorRightA.Width - 25, smallDoorRightA.Y + smallDoorRightA.Height - 75, 25, 75));
+                    villainList[villainList.Count - 1].Setup(skeletonDown[0], 10, 125, rnd.Next(5, 8), "Skeleton", 0, new Rectangle(smallDoorRightA.X + smallDoorRightA.Width - 25, smallDoorRightA.Y + smallDoorRightA.Height - 75, 25, 75));
                     smallDoorRightAIsOpening = false;
                 }
             }
@@ -1326,6 +1373,7 @@ namespace OccultTower
             if (rnd.Next(0, 1001) == 1)
             {
                 smallDoorRightBIsOpening = true;
+                PlayCreak();
             }
 
             if (smallDoorRightBIsOpening == true)
@@ -1334,7 +1382,7 @@ namespace OccultTower
                 if (smallDoorRightBAnimationPoint == smallDoorRightBImages.Length)
                 {
                     villainList.Add(new Villain());
-                    villainList[villainList.Count - 1].Setup(skeletonDown[0], 5, 50, rnd.Next(10,16), "Skeleton", 0, new Rectangle(smallDoorRightB.X + smallDoorRightB.Width - 15, smallDoorRightB.Y + smallDoorRightB.Height - 50, 15, 50));
+                    villainList[villainList.Count - 1].Setup(skeletonDown[0], 5, 50, rnd.Next(10, 16), "Skeleton", 0, new Rectangle(smallDoorRightB.X + smallDoorRightB.Width - 15, smallDoorRightB.Y + smallDoorRightB.Height - 50, 15, 50));
                     smallDoorRightBIsOpening = false;
                 }
             }
@@ -1350,6 +1398,7 @@ namespace OccultTower
             if (rnd.Next(0, 101) == 1)
             {
                 smallDoorRightCIsOpening = true;
+                PlayCreak();
             }
 
             if (smallDoorRightCIsOpening == true)
@@ -1358,7 +1407,7 @@ namespace OccultTower
                 if (smallDoorRightCAnimationPoint == smallDoorRightCImages.Length)
                 {
                     villainList.Add(new Villain());
-                    villainList[villainList.Count - 1].Setup(skeletonDown[0], 10, 125, rnd.Next(3,8), "Skeleton", 0, new Rectangle(smallDoorRightC.X + smallDoorRightC.Width - 25, smallDoorRightC.Y + smallDoorRightC.Height - 75, 25, 75));
+                    villainList[villainList.Count - 1].Setup(skeletonDown[0], 10, 125, rnd.Next(3, 8), "Skeleton", 0, new Rectangle(smallDoorRightC.X + smallDoorRightC.Width - 25, smallDoorRightC.Y + smallDoorRightC.Height - 75, 25, 75));
                     smallDoorRightCIsOpening = false;
                 }
             }
@@ -1374,6 +1423,7 @@ namespace OccultTower
             if (rnd.Next(0, 501) == 1)
             {
                 bigDoorAIsOpening = true;
+                PlayCreak();
             }
 
             if (bigDoorAIsOpening == true)
@@ -1382,7 +1432,7 @@ namespace OccultTower
                 if (bigDoorAAnimationPoint == bigDoorAImages.Length)
                 {
                     villainList.Add(new Villain());
-                    villainList[villainList.Count - 1].Setup(skeletonDown[0], 25, 500, rnd.Next(3,6), "Skeleton", 0, new Rectangle(bigDoorA.X + bigDoorA.Width - 50, bigDoorA.Y + bigDoorA.Height - 100, 50, 100));
+                    villainList[villainList.Count - 1].Setup(skeletonDown[0], 25, 500, rnd.Next(3, 6), "Skeleton", 0, new Rectangle(bigDoorA.X + bigDoorA.Width - 50, bigDoorA.Y + bigDoorA.Height - 100, 50, 100));
                     bigDoorAIsOpening = false;
                 }
             }
@@ -1398,6 +1448,7 @@ namespace OccultTower
             if (rnd.Next(0, 5001) == 1)
             {
                 bigDoorBIsOpening = true;
+                PlayCreak();
             }
 
             if (bigDoorBIsOpening == true)
@@ -1422,6 +1473,7 @@ namespace OccultTower
             if (rnd.Next(0, 501) == 1)
             {
                 bigDoorCIsOpening = true;
+                PlayCreak();
             }
 
             if (bigDoorCIsOpening == true)
@@ -1430,7 +1482,7 @@ namespace OccultTower
                 if (bigDoorCAnimationPoint == bigDoorCImages.Length)
                 {
                     villainList.Add(new Villain());
-                    villainList[villainList.Count - 1].Setup(skeletonDown[0], 25, 500, rnd.Next(3,6), "Skeleton", 0, new Rectangle(bigDoorC.X + bigDoorC.Width - 50, bigDoorC.Y + bigDoorC.Height - 100, 50, 100));
+                    villainList[villainList.Count - 1].Setup(skeletonDown[0], 25, 500, rnd.Next(3, 6), "Skeleton", 0, new Rectangle(bigDoorC.X + bigDoorC.Width - 50, bigDoorC.Y + bigDoorC.Height - 100, 50, 100));
                     bigDoorCIsOpening = false;
                 }
             }
@@ -1497,6 +1549,11 @@ namespace OccultTower
                             enemy.Area.X -= enemy.Speed;
                             enemy.VillainDisplay = skeletonLeft[enemy.AnimationPoint];
                         }
+
+                        if (rnd.Next(0, 101) <= 5)
+                        {
+                            PlaySkeleton();
+                        }
                     }
 
                     enemy.AnimationPoint++;
@@ -1518,12 +1575,19 @@ namespace OccultTower
 
             if (escPressed == true || target.IntersectsWith(pauseButton) && leftClick == true)
             {
+                gameMusic.Pause();
+                lowHealthMusic.Pause();
+                torchAmbiance.Pause();
+                menuMusic.Play();
                 SurvivalWatch.Stop();
                 PauseOp();
             }
 
             if (health <= 0)
             {
+                gameMusic.Stop();
+                torchAmbiance.Stop();
+                lowHealthMusic.Stop();
                 gameOperator.Stop();
                 deathOperator.Enabled = true;
             }
@@ -1544,6 +1608,8 @@ namespace OccultTower
         public void PauseOp()
         {
             escPressed = false;
+
+            PlaySelect();
 
             if (pauseOverlay.Visible == false)
             {
@@ -1584,6 +1650,8 @@ namespace OccultTower
                 exitToMainMenuButton.Visible = false;
                 exitGameButton.Visible = false;
 
+                menuMusic.Pause();
+
                 gameOperator.Enabled = true;
 
                 Cursor.Hide();
@@ -1592,11 +1660,14 @@ namespace OccultTower
 
         private void exitGameButton_Click(object sender, EventArgs e)
         {
+            PlaySelect();
             Application.Exit();
         }
 
         private void restartButton_Click(object sender, EventArgs e)
         {
+            PlaySelect();
+            menuMusic.Pause();
             Reset();
             PauseOp();
         }
@@ -1604,6 +1675,7 @@ namespace OccultTower
         private void resumeButton_Click(object sender, EventArgs e)
         {
             PauseOp();
+            menuMusic.Pause();
         }
 
         private void exitToMainMenuButton_Click(object sender, EventArgs e)
@@ -1622,6 +1694,11 @@ namespace OccultTower
 
         private void startOperator_Tick(object sender, EventArgs e)
         {
+            menuMusic.Play();
+
+            //Reset GameStart Sound
+            gameStart.Stop();
+
             ImageOverlay.Visible = true;
             ImageOverlay.Location = new Point(0, 0);
             ImageOverlay.Size = this.Size;
@@ -1641,6 +1718,8 @@ namespace OccultTower
 
         private void optionsOperatorS_Tick(object sender, EventArgs e)
         {
+            menuMusic.Play();
+
             startButton.Visible = false;
             optionButtonS.Visible = false;
             exitGameButton.Visible = false;
@@ -1651,12 +1730,14 @@ namespace OccultTower
 
             if (MouseTracker.IntersectsWith(new Rectangle(125, 0, 125, 125)) && leftClick == true || escPressed == true)
             {
+                PlaySelect();
                 startOperator.Enabled = true;
                 optionsOperatorS.Stop();
             }
 
             if (MouseTracker.IntersectsWith(new Rectangle(this.Width / 2 - 125, this.Height - 50, 250, 125)) && leftClick == true || escPressed == true)
             {
+                PlaySelect();
                 controlOperator.Enabled = true;
                 optionsOperatorS.Stop();
             }
@@ -1664,12 +1745,15 @@ namespace OccultTower
 
         private void controlOperator_Tick(object sender, EventArgs e)
         {
+            menuMusic.Play();
+
             ImageOverlay.BackgroundImage = Properties.Resources.OccultTowerControlsOverlay;
 
             Rectangle MouseTracker = new Rectangle(MousePosition.X, MousePosition.Y, 25, 25);
 
             if (MouseTracker.IntersectsWith(new Rectangle(125, 0, 125, 125)) && leftClick == true || escPressed == true)
             {
+                PlaySelect();
                 optionsOperatorS.Enabled = true;
                 controlOperator.Stop();
             }
@@ -1677,16 +1761,20 @@ namespace OccultTower
 
         private void optionsOperator_Tick(object sender, EventArgs e)
         {
+            menuMusic.Play();
+
             Rectangle MouseTracker = new Rectangle(MousePosition.X, MousePosition.Y, 25, 25);
 
             if (MouseTracker.IntersectsWith(new Rectangle(125, 0, 125, 125)) && leftClick == true || escPressed == true)
             {
+                PlaySelect();
                 startOperator.Enabled = true;
                 optionsOperator.Stop();
             }
 
             if (MouseTracker.IntersectsWith(new Rectangle(this.Width / 2 - 125, this.Height - 50, 250, 125)) && leftClick == true || escPressed == true)
             {
+                PlaySelect();
                 controlOperator.Enabled = true;
                 optionsOperator.Stop();
             }
@@ -1694,13 +1782,22 @@ namespace OccultTower
 
         private void menuOperator_Tick(object sender, EventArgs e)
         {
+            menuMusic.Play();
+
+            //Reset GameStart Sound
+            gameStart.Stop();
+
             ImageOverlay.BackgroundImage = Properties.Resources.OccultTower_Main_Menu;
 
             Rectangle MouseTracker = new Rectangle(MousePosition.X, MousePosition.Y, 25, 25);
 
             if (MouseTracker.IntersectsWith(new Rectangle(this.Width / 2 - 50, this.Height / 2 - 25, 100, 50)) && leftClick == true || escPressed == true)
             {
+                PlaySelect();
+
                 //Start the game
+                menuMusic.Pause();
+                gameStart.Play();
                 Reset();
                 gameOperator.Enabled = true;
 
@@ -1711,6 +1808,8 @@ namespace OccultTower
 
             if (MouseTracker.IntersectsWith(new Rectangle(125, 0, 125, 125)) && leftClick == true || escPressed == true)
             {
+                PlaySelect();
+
                 //Go back to the start screen
                 startOperator.Enabled = true;
 
@@ -1720,6 +1819,8 @@ namespace OccultTower
 
             if (MouseTracker.IntersectsWith(new Rectangle(this.Width - 250, 0, 125, 125)) && leftClick == true || escPressed == true)
             {
+                PlaySelect();
+
                 //Start the game
                 optionsOperatorM.Enabled = true;
 
@@ -1729,6 +1830,8 @@ namespace OccultTower
 
             if (MouseTracker.IntersectsWith(new Rectangle(125, this.Height - 65, 125, 125)) && leftClick == true || escPressed == true)
             {
+                PlaySelect();
+
                 //Close the program
                 Application.Exit();
             }
@@ -1736,12 +1839,15 @@ namespace OccultTower
 
         private void optionButtonS_Click(object sender, EventArgs e)
         {
+            PlaySelect();
             startOperator.Stop();
             optionsOperatorS.Enabled = true;
         }
 
         private void startButton_Click(object sender, EventArgs e)
         {
+            PlaySelect();
+
             menuOperator.Enabled = true;
 
             startButton.Visible = false;
@@ -1753,11 +1859,13 @@ namespace OccultTower
 
         private void deathOperator_Tick(object sender, EventArgs e)
         {
+            menuMusic.Play();
+
             SurvivalWatch.Stop();
 
             ImageOverlay.Visible = true;
             ImageOverlay.Location = new Point(0, 00);
-            ImageOverlay.Size = new Size(this.Width,this.Height - 200);
+            ImageOverlay.Size = new Size(this.Width, this.Height - 200);
             ImageOverlay.BackgroundImageLayout = ImageLayout.Zoom;
             ImageOverlay.BackgroundImage = Properties.Resources.Tombstone;
             Cursor.Show();
@@ -1766,10 +1874,15 @@ namespace OccultTower
             deathTimeLabel.Visible = true;
             deathTimeLabel.Location = new Point(this.Width / 2 - deathTimeLabel.Width / 2, 285);
 
+            deathMusic.Play();
+
             Rectangle MouseTracker = new Rectangle(MousePosition.X, MousePosition.Y, 25, 25);
 
             if (MouseTracker.IntersectsWith(new Rectangle(this.Width / 2 - 75, ImageOverlay.Height - 20, 150, 50)) && leftClick == true)
             {
+                deathMusic.Stop();
+                PlaySelect();
+
                 //Activate the next timer
                 menuOperator.Enabled = true;
 
@@ -1783,6 +1896,9 @@ namespace OccultTower
 
             if (MouseTracker.IntersectsWith(new Rectangle(this.Width / 2 - 75 - 150 - 50, ImageOverlay.Height - 20, 150, 50)) && leftClick == true)
             {
+                deathMusic.Stop();
+                PlaySelect();
+
                 //Activate the next timer
                 Reset();
                 ImageOverlay.Visible = false;
@@ -1799,6 +1915,9 @@ namespace OccultTower
 
             if (MouseTracker.IntersectsWith(new Rectangle(this.Width / 2 - 75 + 150 + 50, ImageOverlay.Height - 20, 150, 50)) && leftClick == true)
             {
+                deathMusic.Stop();
+                PlaySelect();
+
                 //Exit the Application
                 Application.Exit();
             }
@@ -1806,6 +1925,8 @@ namespace OccultTower
 
         private void controlOperatorP_Tick(object sender, EventArgs e)
         {
+            menuMusic.Play();
+
             //Set the background to the controls overlay
             ImageOverlay.BackgroundImage = Properties.Resources.OccultTowerControlsOverlay;
 
@@ -1814,6 +1935,8 @@ namespace OccultTower
 
             if (MouseTracker.IntersectsWith(new Rectangle(125, 0, 125, 125)) && leftClick == true || escPressed == true)
             {
+                PlaySelect();
+
                 //Go back to the options menu
                 optionsOperator.Enabled = true;
 
@@ -1824,11 +1947,15 @@ namespace OccultTower
 
         private void optionsOperatorM_Tick(object sender, EventArgs e)
         {
+            menuMusic.Play();
+
             //Track the mouse
             Rectangle MouseTracker = new Rectangle(MousePosition.X, MousePosition.Y, 25, 25);
 
             if (MouseTracker.IntersectsWith(new Rectangle(125, 0, 125, 125)) && leftClick == true || escPressed == true)
             {
+                PlaySelect();
+
                 //Go back to the menu
                 menuOperator.Enabled = true;
 
@@ -1838,6 +1965,8 @@ namespace OccultTower
 
             if (MouseTracker.IntersectsWith(new Rectangle(this.Width / 2 - 125, this.Height - 50, 250, 125)) && leftClick == true || escPressed == true)
             {
+                PlaySelect();
+
                 //Show the controlls
                 controlOperatorM.Enabled = true;
 
@@ -1848,6 +1977,8 @@ namespace OccultTower
 
         private void controlOperatorM_Tick(object sender, EventArgs e)
         {
+            menuMusic.Play();
+
             //Set the background to the controls overlay
             ImageOverlay.BackgroundImage = Properties.Resources.OccultTowerControlsOverlay;
 
@@ -1857,12 +1988,105 @@ namespace OccultTower
 
             if (MouseTracker.IntersectsWith(new Rectangle(125, 0, 125, 125)) && leftClick == true || escPressed == true)
             {
+                PlaySelect();
+
                 //Go back to the options menu
                 optionsOperatorM.Enabled = true;
 
                 //Hide the controlls
                 controlOperatorM.Stop();
             }
+        }
+
+        //I got concurrent Audio Working! Very cool! :D
+        private void PlaySkeleton()
+        {
+            var skeleton = new System.Windows.Media.MediaPlayer();
+
+            skeleton.Open(new Uri(Application.StartupPath + "/Resources/420252__redroxpeterpepper__step-skeleton.wav"));
+
+            skeleton.Play();
+        }
+
+        private void PlaySelect()
+        {
+            var select = new System.Windows.Media.MediaPlayer();
+
+            select.Open(new Uri(Application.StartupPath + "/Resources/220203__gameaudio__casual-death-loose.wav"));
+
+            select.Play();
+        }
+
+        private void PlayFootstep()
+        {
+            var footstep = new System.Windows.Media.MediaPlayer();
+
+            footstep.Open(new Uri(Application.StartupPath + "/Resources/659370__matrixxx___retro-footsteps.wav"));
+
+            footstep.Play();
+        }
+
+        private void PlayShadow()
+        {
+            var shadow = new System.Windows.Media.MediaPlayer();
+
+            shadow.Open(new Uri(Application.StartupPath + "/Resources/483694__camouflaged_noob__shadows1.wav"));
+
+            shadow.Play();
+        }
+
+        private void PlayCreak()
+        {
+            var creak = new System.Windows.Media.MediaPlayer();
+
+            switch (rnd.Next(0, 4))
+            {
+                case 0:
+                    creak.Open(new Uri(Application.StartupPath + "/Resources/219492__jarredgibb__door-creak-02.wav"));
+                    break;
+                case 1:
+                    creak.Open(new Uri(Application.StartupPath + "/Resources/219499__jarredgibb__door-creak.wav"));
+                    break;
+                case 2:
+                    creak.Open(new Uri(Application.StartupPath + "/Resources/346211__inspectorj__door-squeak-normal-e.wav"));
+                    break;
+                case 3:
+                    creak.Open(new Uri(Application.StartupPath + "/Resources/460542__coosemek__door-creak.wav"));
+                    break;
+            }
+
+            creak.Play();
+        }
+
+        private void menuMusic_MediaEnded(object sender, EventArgs e)
+        {
+            //Repeat Media
+            menuMusic.Stop();
+            menuMusic.Play();
+        }
+        private void gameMusic_MediaEnded(object sender, EventArgs e)
+        {
+            //Repeat Media
+            gameMusic.Stop();
+            gameMusic.Play();
+        }
+        private void deathMusic_MediaEnded(object sender, EventArgs e)
+        {
+            //Repeat Media
+            deathMusic.Stop();
+            deathMusic.Play();
+        }
+        private void lowHealthMusic_MediaEnded(object sender, EventArgs e)
+        {
+            //Repeat Media
+            lowHealthMusic.Stop();
+            lowHealthMusic.Play();
+        }
+        private void torchAmbiance_MediaEnded(object sender, EventArgs e)
+        {
+            //Repeat Media
+            torchAmbiance.Stop();
+            torchAmbiance.Play();
         }
     }
 }
